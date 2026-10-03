@@ -1,0 +1,8 @@
+Welcome to BreakDown!
+We simplify complex technologies through clear explanations, visual learning, and practical implementations across these areas:
+- Latest research in AI, machine learning, and deep learning models
+- Research-paper breakdowns and practical coding tutorials
+- Applications of AI in autonomous driving, ADAS, and robotics
+- Data structures, algorithms, and problem-solving techniques
+Subscribe to explore cutting-edge technologies.
+Maintained by Mashhood Raza and Aamna Hasan.
