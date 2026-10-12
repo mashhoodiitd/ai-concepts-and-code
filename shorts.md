@@ -17,7 +17,7 @@ The moat is the idea built-in to the population that CUDA is the moat.
 Good luck fixing that one...
 
 PyTorch uses reshape and view to resize a tensor.
-Flash attention
+__Flash attention__
 Since we are doing matrix multiplication and in matrix multiplication first row of first matrix is multiplied with the first column of the second matrix, then first row of first matrix is multiplied with the second column of the second matrix and so on. So, q1 is the first row of the query matrix and k1 is the first row of the K matrix. We are multiplying without transposing K, so row of Q will get multiplied with row of K. 
 When you take a vector from a matrix, like first row of a matrix, in linear algebra the usual notation is we always pretend that a vector is a column vector. So, q1 and K1 both are column vector. So, to keep the notation same as linear algebra, we need to get the result of QKT, so we do for notation q1Tk1 to its transpose.
 S=QKT :[q1Tk1 q1Tk2 …. q1Tkn
@@ -39,7 +39,7 @@ How FlashAttention Handles Block Computation Memory
 •	Kernel Fusion: All intermediate operations—such as matrix multiplication (\(QK^{T}\)), scaling, masking, softmax calculation, and the final multiplication by V—happen entirely on-chip inside a single fused GPU kernel. [1]
 •	Avoiding HBM Hops: The massive intermediate matrices (S and P) are never written out to HBM. [1]
 •	Final Output Only: Only the final accumulated output block (O) is scaled, updated using online softmax statistics, and written back to the HBM once. [1, 2]
-Safe softmax:
+__Safe softmax:__
 The Problem with Standard Softmax
 The standard softmax function turns raw numbers (logits) into probabilities by exponentiating each value and dividing by the sum of all exponentiated values. [1, 2]
 •	Numerical instability: Large numbers cause computer overflow errors in standard float formats.
@@ -63,7 +63,7 @@ xk   e^(xk – mn)/ln
 Add a small vector example of [4, 1, 7, 2] to demonstrate safe softmax operation.
 
 
-Online SoftMax
+__Online SoftMax__:
 Problem with Safe softmax:
 Memory bottleneck: Safe softmax traditionally requires three separate passes over the data in memory (one to find the max, one to sum the exponents, and one to compute the final values), which slows down GPU processing. [1, 2, 3, 4]
 To apply the softmax to a vector in a numerically safe way, we need to find a k constant which is the maximum value of the vector.
@@ -104,14 +104,14 @@ Introduced by researchers Maxim Milakov and Natalia Gimelshein in 2018, online s
 •	Rescaling: When a new, larger maximum appears, it multiplies the old sum by a correction factor (\(\exp(prev\_max - new\_max)\)) instead of restarting the pass.
 •	Efficiency: This reduces memory operations from three passes down to two, matching the speed of naive softmax methods while keeping numerical stability. You can read more about the mechanics in this Online Softmax Overview. [1, 2, 3]
 
-Block Matrix Multiplication:
+__Block Matrix Multiplication:__
 If you have a smaller number of cores (e.g., 8 CPU cores) and you like to multiply two matrices of large size to get an output matrix.
 For simplicity, let’s take an example of a smaller matrix: give example you are multiplying a 8*4 matrix to a 4*8 matrix to get an 8*8 matrix so it has 64 elements, and you can compute these 64 elements parallelly as they do not depends on each other, but you have only 8 cores. Ho will you do iT?
 You will use block matrix multiplication.
 Here we divide original matrix into smaller blocks of elements, and then we do operation of matrix multiplication between these blocks. Like in the example we divide first matrix into 4 blocks (2,2) and second matrix into 8 blocks (2, 4) to get an output block matrix of (2, 4).
 
 
-GPU and CUDA
+__GPU and CUDA__
 The NVIDIA A100 Tensor Core GPU comes in two main memory configurations: 40 GB and 80 GB. 
 Memory Specifications
 •	A100 40GB: Uses high-bandwidth memory (HBM2) with a memory bandwidth of about 1.55 to 1.6 TB/s.
@@ -121,7 +121,8 @@ In this particular video I will be showing you the example of CUDA kernels but t
 CPU
 The first difference between a CPU and a GPU is its purpose. My computer is now running on CPU, and the OS is interfacing with the CPU using the Scheduler. 
 Suppose you are running a browser and running other software on the computer., scheduler is tasked with switching between these tasks very fast on the CPU in such a way that it looks like the processes are running concurrently. This actually is a fake kind of parallelism, unless your CPU has multiple cores. Nowdays, CPU ha smultiple core like dual core, quad core, or eight core. Each of these cores can execute instruction in  parallel.  The main purpose of the CPU is to execute many different task and switching between them very fast. You may have a browser open, playing some game, movie player and you have a word processor and then you have some utility to download files etc. Most of these tasks are not compute intensive or actually IO bound (meaning most of the time they are waiting for the network or for the disk). They are very different from each other in the purpose, so a browser is completely different from a movie player and it is completely different from a word processor. So, the job of the CPU is to reduce the latencies of processing all of these operations, and it is highly optimized to process each of these execution units called cores. Which means each core of a CPU has a part that is tasked to run first of all what is the next instruction to run or to predict the branch what the next operation maybe on the conditions that you are running. For example, if you have an if condition, the branch predictor can understand what the most likely next instruction would be and can do some optimizations. Also, the CPU has a lot of cache to reduce the latencies in loading the data from all the devices it can interface with. It can interface with RAM for sure, but it can interface with disk it can also interface with some peripheral like the key, the mouse, the printer etc. 
-GPU
+
+__GPU__
 On the other hand, GPU is not tasked to do many different things at the same time. It is tasked to do with one thing or few things but with massive amount of data. Operations that we do on the GPU requires a lot of computation. For this reason, most of the area the physical area on the GPU is dedicated to compute units. The green stuff in the image and the are called as cores. You can see the part that is given to control area for the next instruction prediction and optimization is very little.
 On a simple addition task of two vectors, on CPU we can use a for loop:
 for i = 0 to n-1:
